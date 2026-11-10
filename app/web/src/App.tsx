@@ -205,12 +205,19 @@ export default function App() {
   return (
     <main ref={mainRef} tabIndex={-1} className="outline-none">
       {route === '' && (
-        <div className="screen flex min-h-dvh flex-col items-center justify-center">
-          <p className="display absolute top-7 left-8 m-0 text-xl font-medium tracking-wide">CRS</p>
+        <div className="screen flex min-h-dvh flex-col items-center justify-center px-5 text-center">
+          <p className="display absolute top-7 left-8 m-0 text-xl font-semibold tracking-wide">CRS</p>
           <LandingOrb />
-          <button type="button" className="btn glass -mt-2" onClick={() => go('note')}>
+          <h1 className="glow-text m-0 mt-8 max-w-2xl text-4xl font-semibold sm:text-5xl">Clinical Trial Criterion Screener</h1>
+          <p className="m-0 mt-4 max-w-xl text-lg text-muted">
+            Match a patient record to each trial criterion, with the exact supporting evidence and an eligibility verdict you can trace.
+          </p>
+          <button type="button" className="btn glass mt-8" onClick={() => go('note')}>
             Get started
           </button>
+          <p className="m-0 mt-6 max-w-md text-sm text-faint">
+            Educational screening prototype — not a clinical enrollment decision.
+          </p>
         </div>
       )}
       {onInspect && !restoring && (

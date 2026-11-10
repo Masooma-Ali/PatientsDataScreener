@@ -29,7 +29,7 @@ function Bars({ title, unit, rows }: { title: string; unit: string; rows: Array<
       <div className="flex flex-col gap-3.5">
         {rows.map((row) => (
           <div key={row.label} className="grid items-center gap-x-4 gap-y-1 sm:grid-cols-[12rem_1fr]">
-            <span className="text-neutral-300">{row.label}</span>
+            <span className="text-muted">{row.label}</span>
             <div className="flex items-center gap-3">
               <div className={`h-4 rounded-sm ${row.reference ? 'hatched' : 'solid-glow'}`} style={{ width: `${(row.value / max) * 82}%`, minWidth: 3 }} />
               <span className="font-medium tabular-nums">{row.value.toFixed(2)}</span>
@@ -37,7 +37,7 @@ function Bars({ title, unit, rows }: { title: string; unit: string; rows: Array<
           </div>
         ))}
       </div>
-      <p className="m-0 mt-5 text-sm text-neutral-400">{unit}. Hatched: reference. Solid: compared method.</p>
+      <p className="m-0 mt-5 text-sm text-faint">{unit}. Hatched: reference. Solid: compared method.</p>
     </figure>
   );
 }
@@ -104,9 +104,9 @@ function DecodingLab({ ready, sentences, choices, startIndex, criterion, criteri
   return (
     <div className="flex flex-col gap-5">
       <div className="card flex flex-col gap-4 p-5">
-        {usingExample && <p className="m-0 text-sm text-neutral-300">Showing a made-up example, since there is no screening yet. You can edit it.</p>}
+        {usingExample && <p className="m-0 text-sm text-muted">Showing a made-up example, since there is no screening yet. You can edit it.</p>}
         {choices.length > 0 && (
-          <label className="flex flex-col gap-2 text-neutral-300">
+          <label className="flex flex-col gap-2 text-muted">
             Criterion from this result
             <select className="field" value={picked} onChange={(event) => pick(Number(event.target.value))}>
               {choices.map((choice, index) => (
@@ -117,25 +117,25 @@ function DecodingLab({ ready, sentences, choices, startIndex, criterion, criteri
             </select>
           </label>
         )}
-        <label className="flex flex-col gap-2 text-neutral-300">
+        <label className="flex flex-col gap-2 text-muted">
           Patient sentences, one per line
           <textarea className="field min-h-28" value={note} onChange={(event) => setNote(event.target.value)} />
         </label>
         <div className="grid gap-4 sm:grid-cols-[10rem_1fr]">
-          <label className="flex flex-col gap-2 text-neutral-300">
+          <label className="flex flex-col gap-2 text-muted">
             Type
             <select className="field" value={kind} onChange={(event) => setKind(event.target.value)}>
               <option value="inclusion">Inclusion</option>
               <option value="exclusion">Exclusion</option>
             </select>
           </label>
-          <label className="flex flex-col gap-2 text-neutral-300">
+          <label className="flex flex-col gap-2 text-muted">
             Criterion
             <input className="field" value={text} onChange={(event) => setText(event.target.value)} />
           </label>
         </div>
         <div className="grid items-end gap-4 sm:grid-cols-3">
-          <label className="flex flex-col gap-2 text-neutral-300">
+          <label className="flex flex-col gap-2 text-muted">
             Maximum output tokens
             <select className="field" value={limit} onChange={(event) => setLimit(Number(event.target.value))}>
               {[16, 32, 64, 128, 256].map((value) => (
@@ -143,7 +143,7 @@ function DecodingLab({ ready, sentences, choices, startIndex, criterion, criteri
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-2 text-neutral-300">
+          <label className="flex flex-col gap-2 text-muted">
             Draft length
             <select className="field" value={draftLength} onChange={(event) => setDraftLength(Number(event.target.value))}>
               {[2, 4, 8].map((value) => (
@@ -151,7 +151,7 @@ function DecodingLab({ ready, sentences, choices, startIndex, criterion, criteri
               ))}
             </select>
           </label>
-          <label className="flex items-center gap-2 pb-3 text-neutral-300">
+          <label className="flex items-center gap-2 pb-3 text-muted">
             <input type="checkbox" checked={ignoreEos} onChange={(event) => setIgnoreEos(event.target.checked)} />
             Generate the full length
           </label>
@@ -160,7 +160,7 @@ function DecodingLab({ ready, sentences, choices, startIndex, criterion, criteri
           <button type="button" className="btn btn-primary" disabled={running || Boolean(blocked)} onClick={run}>
             {running ? 'Running...' : 'Run comparison'}
           </button>
-          {blocked && <span className="text-sm text-neutral-300">{blocked}</span>}
+          {blocked && <span className="text-sm text-muted">{blocked}</span>}
         </div>
       </div>
       {error && <Notice message={error} />}
@@ -191,7 +191,7 @@ function DecodingLab({ ready, sentences, choices, startIndex, criterion, criteri
                 ))}
               </tbody>
             </table>
-            <p className="m-0 mt-3 text-sm text-neutral-400">
+            <p className="m-0 mt-3 text-sm text-faint">
               Target on {output.device}. Draft on {output.draft_device}. One live run, so timings vary.
             </p>
           </div>
@@ -227,7 +227,7 @@ function AttentionLab() {
   return (
     <div className="flex flex-col gap-5">
       <div className="card grid items-end gap-4 p-5 sm:grid-cols-[1fr_1fr_auto]">
-        <label className="flex flex-col gap-2 text-neutral-300">
+        <label className="flex flex-col gap-2 text-muted">
           Sequence length
           <select className="field" value={length} onChange={(event) => setLength(Number(event.target.value))}>
             {[64, 256, 512, 1024, 2048, 4096].map((value) => (
@@ -235,7 +235,7 @@ function AttentionLab() {
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-2 text-neutral-300">
+        <label className="flex flex-col gap-2 text-muted">
           Tile size
           <select className="field" value={tile} onChange={(event) => setTile(Number(event.target.value))}>
             {[16, 32, 64, 128, 256].map((value) => (
@@ -247,7 +247,7 @@ function AttentionLab() {
           {running ? 'Running...' : 'Run comparison'}
         </button>
       </div>
-      {tile > length && <p className="m-0 text-sm text-neutral-400">The tile size cannot be larger than the sequence length.</p>}
+      {tile > length && <p className="m-0 text-sm text-faint">The tile size cannot be larger than the sequence length.</p>}
       {error && <Notice message={error} />}
       {output && (
         <>
@@ -258,7 +258,7 @@ function AttentionLab() {
               ['Tiles computed / skipped', `${output.tiles_computed} / ${output.tiles_skipped}`],
             ].map(([label, value]) => (
               <div key={label}>
-                <p className="m-0 text-sm text-neutral-400">{label}</p>
+                <p className="m-0 text-sm text-faint">{label}</p>
                 <p className="m-0 mt-1 text-xl tabular-nums">{value}</p>
               </div>
             ))}
@@ -296,8 +296,8 @@ function Reports({ onOpen }: { onOpen: (id: string) => void }) {
   }, []);
 
   if (error) return <Notice message={error} />;
-  if (!rows) return <p className="m-0 text-neutral-400">Loading...</p>;
-  if (!rows.length) return <p className="m-0 text-neutral-400">No saved screenings yet.</p>;
+  if (!rows) return <p className="m-0 text-faint">Loading...</p>;
+  if (!rows.length) return <p className="m-0 text-faint">No saved screenings yet.</p>;
   return (
     <div className="card overflow-x-auto p-5">
       <table>

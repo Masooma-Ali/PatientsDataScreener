@@ -37,7 +37,7 @@ export function PageHeader({ status }: { status: Status | null }) {
   return (
     <header className="flex items-center justify-between gap-4 px-8 pt-7">
       <p className="display m-0 text-xl font-medium tracking-wide">CRS</p>
-      <p className="m-0 inline-flex items-center gap-2 text-sm text-neutral-300" role="status">
+      <p className="m-0 inline-flex items-center gap-2 text-sm text-muted" role="status">
         <span className={`dot dot-${kind}`} aria-hidden="true" />
         {text}
       </p>
@@ -47,7 +47,7 @@ export function PageHeader({ status }: { status: Status | null }) {
 
 export function Notice({ message }: { message: string }) {
   return (
-    <div className="card px-5 py-4 text-center text-neutral-100" role="alert">
+    <div className="card px-5 py-4 text-center text-ink" role="alert">
       {message}
     </div>
   );
@@ -55,10 +55,10 @@ export function Notice({ message }: { message: string }) {
 
 export function ConfirmDialog({ title, message, confirm, onConfirm, onCancel }: { title: string; message: string; confirm: string; onConfirm: () => void; onCancel: () => void }) {
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/70 px-4" role="dialog" aria-modal="true" aria-label={title}>
-      <div className="card max-w-sm bg-black p-6 text-center">
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 px-4" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="card max-w-sm bg-white p-6 text-center">
         <h2 className="m-0 text-xl font-medium">{title}</h2>
-        <p className="m-0 mt-2 text-neutral-300">{message}</p>
+        <p className="m-0 mt-2 text-muted">{message}</p>
         <div className="mt-5 flex justify-center gap-3">
           <button type="button" className="btn" onClick={onCancel} autoFocus>
             Stay

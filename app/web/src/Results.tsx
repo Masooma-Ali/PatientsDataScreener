@@ -26,10 +26,10 @@ export function Results({ screening, onOpen, onEdit }: { screening: Screening; o
   return (
     <div className="flex w-full max-w-3xl flex-col items-center gap-7">
       <div className="text-center">
-        <p className="m-0 text-sm tracking-wide text-neutral-400 uppercase">Overall · preliminary</p>
+        <p className="m-0 text-sm tracking-wide text-faint uppercase">Overall · preliminary</p>
         <h1 className="glow-text m-0 mt-2 text-6xl font-medium">{overall.outcome}</h1>
-        <p className="m-0 mt-3 text-lg text-neutral-300 tabular-nums">{countLine(overall.counts)}</p>
-        {overall.reason && <p className="m-0 mt-1 text-neutral-300">{overall.reason}</p>}
+        <p className="m-0 mt-3 text-lg text-muted tabular-nums">{countLine(overall.counts)}</p>
+        {overall.reason && <p className="m-0 mt-1 text-muted">{overall.reason}</p>}
       </div>
       <div className="flex flex-wrap justify-center gap-3">
         <button type="button" className="btn" onClick={onEdit}>
@@ -46,19 +46,19 @@ export function Results({ screening, onOpen, onEdit }: { screening: Screening; o
         {results.map((result) => (
           <button key={result.index} type="button" className="row-link flex items-center justify-between gap-5 px-5 py-3.5" onClick={() => onOpen(result.index)}>
             <span className="min-w-0">
-              <span className="block text-xs text-neutral-400 uppercase">{result.criterion_type}</span>
+              <span className="block text-xs text-faint uppercase">{result.criterion_type}</span>
               <span className="block">{result.criterion}</span>
             </span>
             <span className="flex shrink-0 flex-col items-end gap-0.5">
               <Verdict label={result.label} />
-              <span className="text-xs text-neutral-400 tabular-nums">
+              <span className="text-xs text-faint tabular-nums">
                 {result.evidence_ids.length ? `${result.evidence_ids.length} cited` : 'none cited'}
               </span>
             </span>
           </button>
         ))}
       </div>
-      <p className="m-0 max-w-2xl text-center text-sm leading-relaxed text-neutral-400">{overall.rule}</p>
+      <p className="m-0 max-w-2xl text-center text-sm leading-relaxed text-faint">{overall.rule}</p>
     </div>
   );
 }
@@ -66,7 +66,7 @@ export function Results({ screening, onOpen, onEdit }: { screening: Screening; o
 function Detail({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="m-0 mb-2 text-base font-medium text-neutral-300">{title}</h2>
+      <h2 className="m-0 mb-2 text-base font-medium text-muted">{title}</h2>
       {children}
     </section>
   );
@@ -93,15 +93,15 @@ export function CriterionDetail({ screening, index, onBack, onMove }: { screenin
   return (
     <div className="flex w-full max-w-3xl flex-col gap-6">
       <div>
-        <p className="m-0 text-sm text-neutral-400 uppercase">
+        <p className="m-0 text-sm text-faint uppercase">
           {result.criterion_type} · criterion {index + 1} of {total}
         </p>
         <h1 className="m-0 mt-1 text-2xl leading-snug font-medium">{result.criterion}</h1>
         <Verdict label={result.label} className="glow-text mt-3 text-3xl" />
       </div>
       <div>
-        <p className="m-0 leading-relaxed text-neutral-200">{result.explanation}</p>
-        {result.adjusted && <p className="m-0 mt-1 text-sm text-neutral-400">Adjusted by number check.</p>}
+        <p className="m-0 leading-relaxed text-ink">{result.explanation}</p>
+        {result.adjusted && <p className="m-0 mt-1 text-sm text-faint">Adjusted by number check.</p>}
       </div>
       {missing.length > 0 && (
         <Detail title="Missing information">
@@ -114,14 +114,14 @@ export function CriterionDetail({ screening, index, onBack, onMove }: { screenin
         <ol className="card m-0 flex list-none flex-col gap-1 p-4">
           {screening.sentences.map((sentence, id) => (
             <li key={id} className={`sentence flex gap-3 px-2 py-1.5 ${cited.has(id) ? 'sentence-lit' : cited.size ? 'sentence-dim' : ''}`}>
-              <span className="mono w-6 shrink-0 text-right text-neutral-400">{id}</span>
+              <span className="mono w-6 shrink-0 text-right text-faint">{id}</span>
               <span>{sentence}</span>
             </li>
           ))}
         </ol>
       </Detail>
       <details className="card px-5 py-3">
-        <summary className="cursor-pointer text-neutral-300">Technical details</summary>
+        <summary className="cursor-pointer text-muted">Technical details</summary>
         <div className="mt-3 flex flex-col gap-4">
           <table>
             <tbody>
@@ -134,10 +134,10 @@ export function CriterionDetail({ screening, index, onBack, onMove }: { screenin
             </tbody>
           </table>
           <div>
-            <p className="m-0 mb-1 text-sm text-neutral-400">Raw model output</p>
+            <p className="m-0 mb-1 text-sm text-faint">Raw model output</p>
             <pre className="mono m-0 overflow-x-auto text-sm whitespace-pre-wrap">{result.raw_output}</pre>
           </div>
-          {result.errors.length > 0 && <p className="m-0 text-sm text-neutral-300">{result.errors.join(' ')}</p>}
+          {result.errors.length > 0 && <p className="m-0 text-sm text-muted">{result.errors.join(' ')}</p>}
         </div>
       </details>
       <div className="flex items-center justify-between">

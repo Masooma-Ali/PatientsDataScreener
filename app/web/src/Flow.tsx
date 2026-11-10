@@ -133,13 +133,13 @@ export function SentenceStep({ draft, update, onBack, onNext }: { draft: Draft; 
     <div className="flex w-full max-w-3xl flex-col gap-5">
       <div>
         <h1 className="glow-text m-0 text-3xl font-medium">Review sentences</h1>
-        <p className="m-0 mt-2 text-neutral-400">Each verdict will cite these numbers. Fix any sentence that was cut in the wrong place.</p>
+        <p className="m-0 mt-2 text-faint">Each verdict will cite these numbers. Fix any sentence that was cut in the wrong place.</p>
       </div>
       <div className="card flex flex-col gap-2 p-4">
         <ol className="m-0 flex list-none flex-col gap-2 p-0">
           {sentences.map((sentence, index) => (
             <li key={index} className="flex items-center gap-2">
-              <span className="mono w-7 shrink-0 text-right text-neutral-400">{index}</span>
+              <span className="mono w-7 shrink-0 text-right text-faint">{index}</span>
               <input ref={(element) => { inputs.current[index] = element; }} className="field !py-2" value={sentence} onChange={(event) => change(index, event.target.value)} aria-label={`Sentence ${index}`} />
               <button type="button" className="icon-btn" onClick={() => split(index)} aria-label={`Split sentence ${index} at the cursor`} title="Split at the cursor">
                 <Scissors size={16} aria-hidden="true" />
@@ -212,17 +212,17 @@ export function CriteriaStep({ draft, update, status, onBack, onRun }: { draft: 
     <div className="flex w-full max-w-3xl flex-col gap-5">
       <h1 className="glow-text m-0 text-3xl font-medium">Trial criteria</h1>
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="flex flex-col gap-2 text-neutral-300">
+        <label className="flex flex-col gap-2 text-muted">
           Inclusion, one per line
           <textarea className="field min-h-52" value={draft.inclusion} onChange={(event) => update({ inclusion: event.target.value })} />
         </label>
-        <label className="flex flex-col gap-2 text-neutral-300">
+        <label className="flex flex-col gap-2 text-muted">
           Exclusion, one per line
           <textarea className="field min-h-52" value={draft.exclusion} onChange={(event) => update({ exclusion: event.target.value })} />
         </label>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="flex flex-col gap-2 text-neutral-300">
+        <div className="flex flex-col gap-2 text-muted">
           <label htmlFor="trial-id">Import from ClinicalTrials.gov</label>
           <div className="flex gap-2">
             <input id="trial-id" className="field" placeholder="NCT01234567" value={trial} onChange={(event) => setTrial(event.target.value)} />
@@ -231,7 +231,7 @@ export function CriteriaStep({ draft, update, status, onBack, onRun }: { draft: 
             </button>
           </div>
         </div>
-        <label className="flex flex-col gap-2 text-neutral-300">
+        <label className="flex flex-col gap-2 text-muted">
           Decoding
           <select className="field" value={draft.mode} onChange={(event) => update({ mode: event.target.value })}>
             {MODES.map(([value, label]) => (
@@ -240,11 +240,11 @@ export function CriteriaStep({ draft, update, status, onBack, onRun }: { draft: 
               </option>
             ))}
           </select>
-          {draft.mode === 'speculative' && <span className="text-sm text-neutral-400">Gives the same output as the KV cache. It was slower in our benchmarks on this hardware.</span>}
+          {draft.mode === 'speculative' && <span className="text-sm text-faint">Gives the same output as the KV cache. It was slower in our benchmarks on this hardware.</span>}
         </label>
       </div>
-      {message &&<p className="m-0 text-sm text-neutral-300">{message}</p>}
-      {statusText && <p className="m-0 text-sm text-neutral-400">{statusText}</p>}
+      {message &&<p className="m-0 text-sm text-muted">{message}</p>}
+      {statusText && <p className="m-0 text-sm text-faint">{statusText}</p>}
       {error && <Notice message={error} />}
       <StepFooter onBack={onBack} nextLabel={busy ? 'Starting...' : 'Run screening'} onNext={run} nextDisabled={busy || !ready} />
     </div>
@@ -280,8 +280,8 @@ export function Running({ jobId, onDone, onFailed, onCancelled }: { jobId: strin
   return (
     <div className="flex flex-col items-center gap-5" role="status" aria-live="polite">
       <div className="card flex items-center gap-4 !rounded-full py-3 pr-8 pl-4">
-        <ThinkingOrb state="working" size={64} theme="dark" aria-hidden="true" />
-        <span className="text-2xl text-neutral-300">{progress.total ? `Checking criterion ${current} of ${progress.total}` : 'Starting'}</span>
+        <ThinkingOrb state="working" size={64} theme="light" aria-hidden="true" />
+        <span className="text-2xl text-muted">{progress.total ? `Checking criterion ${current} of ${progress.total}` : 'Starting'}</span>
       </div>
       <button
         type="button"
