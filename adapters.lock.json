@@ -1,13 +1,13 @@
 {
   "crs-adapter": {
     "repo": "MasoomaAli/crs-qwen2.5-1.5b-lora",
-    "revision": "b4e5f37cf16a048e99e5121c06fe3830e62ec8dc",
+    "revision": "a6d9a7d4870a211f9b4c615b035768dcfa40c406",
     "run": "R3",
     "base_model": "Qwen/Qwen2.5-1.5B-Instruct"
   },
   "crs-draft-adapter": {
     "repo": "MasoomaAli/crs-qwen2.5-0.5b-draft-lora",
-    "revision": "743e4bb4e76159dd284b55b99aeef67e18559fe6",
+    "revision": "c895db928584d6717c927fe1ead9fb8270ea73de",
     "run": "R6",
     "base_model": "Qwen/Qwen2.5-0.5B-Instruct"
   }
