@@ -11,8 +11,20 @@
 \usepackage{array}
 \usepackage{url}
 \usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
 
 \graphicspath{{figures/}}
+
+% Bold all section and subsection headings for clear structure.
+\titleformat{\section}
+  {\centering\normalfont\normalsize\bfseries}{\thesection.}{0.6em}{}
+\titleformat{\subsection}
+  {\normalfont\normalsize\bfseries}{\thesubsection.}{0.6em}{}
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\itshape}{\thesubsubsection)}{0.6em}{}
+
+% Wider gutter so the two columns read as cleanly separated.
+\setlength{\columnsep}{0.32in}
 
 \begin{document}
 
@@ -267,10 +279,10 @@ to plain greedy target decoding, which we verify in Section~\ref{sec:specres}.
 
 \subsection{Application Workflow}
 The system is a FastAPI server that loads the model once and serves a React/Vite
-single-page interface (Fig.~\ref{fig:app}). A user pastes or uploads a note,
-reviews the auto-numbered sentences, enters or imports inclusion/exclusion
-criteria, and runs the screening; a single-GPU job queue processes one request at
-a time. Each criterion returns its predicted category, cited sentence IDs,
+single-page interface (Fig.~\ref{fig:app}). On one screen a user pastes or
+uploads a note and enters or imports the inclusion/exclusion criteria; the note
+is split into numbered sentences automatically so that evidence can cite their
+IDs, and a single-GPU job queue processes one request at a time. Each criterion returns its predicted category, cited sentence IDs,
 extracted evidence text, and a fixed-wording explanation. A patient-level verdict
 is produced only as an explicit rule-based \emph{aggregation}
 (``likely ineligible'' if any criterion fails with cited evidence; otherwise
@@ -284,9 +296,11 @@ prototype.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.92\columnwidth]{app_landing.png}
-\caption{Browser application: a patient record is matched to each trial
-criterion with traceable evidence. The prototype notice is shown throughout.}
+\includegraphics[width=0.98\columnwidth]{app_screen.png}
+\caption{Browser application. A single screen takes the patient note and the
+inclusion/exclusion criteria; a top navigation bar switches between screening,
+results, and the benchmark view, and the model-status indicator is always
+visible.}
 \label{fig:app}
 \end{figure}
 
