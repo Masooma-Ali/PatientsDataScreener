@@ -43,6 +43,8 @@ class Engine:
         self.tokenizer = None
         self.draft = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # CPU cannot run float16 matmuls; fall back to float32 off the GPU.
+        self.dtype = torch.float16 if self.device.type == "cuda" else torch.float32
         self.target_path = _setting("CRS_TARGET", "models/qwen2.5-1.5b")
         self.draft_path = _setting("CRS_DRAFT", "models/qwen2.5-0.5b")
         self.target_adapter = _setting("CRS_ADAPTER", "models/crs-adapter")
@@ -57,7 +59,7 @@ class Engine:
     def load(self):
         try:
             self.target, self.tokenizer = load_for_inference(
-                ROOT / self.target_path, self._adapter(self.target_adapter), self.device, torch.float16
+                ROOT / self.target_path, self._adapter(self.target_adapter), self.device, self.dtype
             )
             self.state = "ready"
         except Exception as error:  # Shown on screen in place of a server crash.
