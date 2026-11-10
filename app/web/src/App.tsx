@@ -1,12 +1,10 @@
-import { ClipboardCheck, FileText, House, ListChecks, ListOrdered, Search } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, type Report, type Status } from './api';
-import AppDock, { type DockEntry } from './AppDock';
-import { CriteriaStep, NoteStep, Running, SentenceStep, type Draft } from './Flow';
+import { Running, ScreenForm, type Draft } from './Flow';
 import Inspect from './Inspect';
-import LandingOrb from './LandingOrb';
+import NavBar, { type NavEntry } from './NavBar';
 import { CriterionDetail, Results, type Screening } from './Results';
-import { ConfirmDialog, Notice, PageHeader } from './shared';
+import { ConfirmDialog, Notice } from './shared';
 
 const EMPTY: Draft = { note: '', splitNote: '', sentences: [], inclusion: '', exclusion: '', mode: 'cached' };
 const STORAGE_KEY = 'crs-session';
@@ -48,7 +46,7 @@ export default function App() {
   const [screening, setScreening] = useState<Screening | null>(null);
   const [restoring, setRestoring] = useState(Boolean(saved.reportId));
   const [failure, setFailure] = useState('');
-  const [confirmHome, setConfirmHome] = useState(false);
+  const [confirmNew, setConfirmNew] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
 
   const update = useCallback((patch: Partial<Draft>) => setDraft((current) => ({ ...current, ...patch })), []);
@@ -96,39 +94,35 @@ export default function App() {
     if (!restoring) store({ draft, jobId, reportId: screening?.reportId ?? '' });
   }, [restoring, draft, jobId, screening?.reportId]);
 
-  const stepsUnlocked = draft.sentences.length > 0 && draft.note === draft.splitNote;
   const detailIndex = route.startsWith('detail/') ? Number(route.slice(7)) : -1;
   const inspectIndex = route.startsWith('inspect/') ? Number(route.slice(8)) : -1;
   const onInspect = route === 'inspect' || route.startsWith('inspect/');
-  const inResultsArea = route === 'results' || route.startsWith('detail/') || route.startsWith('inspect/');
+  const running = route === 'running';
 
   // A refreshed or hand-typed address may point at a screen whose data no longer exists.
   useEffect(() => {
-    // While a navigation is in flight the state already describes the next screen, so wait for it to land.
     if (restoring || readRoute() !== route) return;
-    if ((route === 'sentences' || route === 'criteria') && !stepsUnlocked) replace('note');
-    if (route === 'running' && !jobId) replace(stepsUnlocked ? 'criteria' : 'note');
-    if ((route === 'results' || route.startsWith('detail/')) && !screening) replace('note');
+    if (route === '') replace('screen');
+    if (route === 'running' && !jobId) replace('screen');
+    if ((route === 'results' || route.startsWith('detail/')) && !screening) replace('screen');
     if (route.startsWith('detail/') && screening && !(Number.isInteger(detailIndex) && screening.results[detailIndex])) replace('results');
     if (route.startsWith('inspect/') && !screening?.results[inspectIndex]) replace('inspect');
-  }, [restoring, route, stepsUnlocked, jobId, screening, detailIndex, inspectIndex]);
+  }, [restoring, route, jobId, screening, detailIndex, inspectIndex]);
 
-  const hasWork = Boolean(draft.note || draft.sentences.length || draft.inclusion || draft.exclusion || screening);
+  const hasWork = Boolean(draft.note || draft.inclusion || draft.exclusion || screening);
 
-  function resetAndGoHome() {
+  function resetToNew() {
     setDraft(EMPTY);
     setScreening(null);
     setJobId('');
     setFailure('');
-    setConfirmHome(false);
-    go('');
+    setConfirmNew(false);
+    go('screen');
   }
 
-  const requestHome = () => (hasWork ? setConfirmHome(true) : resetAndGoHome());
-
-  async function startRun() {
+  async function startRun(sentences: string[]) {
     const { id } = await api.screen({
-      sentences: draft.sentences,
+      sentences,
       inclusion: splitLines(draft.inclusion),
       exclusion: splitLines(draft.exclusion),
       mode: draft.mode,
@@ -153,9 +147,7 @@ export default function App() {
   }
 
   let body = null;
-  if (route === 'note') body = <NoteStep draft={draft} update={update} onNext={() => go('sentences')} />;
-  else if (route === 'sentences' && stepsUnlocked) body = <SentenceStep draft={draft} update={update} onBack={() => go('note')} onNext={() => go('criteria')} />;
-  else if (route === 'criteria' && stepsUnlocked) body = <CriteriaStep draft={draft} update={update} status={status} onBack={() => go('sentences')} onRun={startRun} />;
+  if (route === 'screen') body = <ScreenForm draft={draft} update={update} status={status} onRun={startRun} />;
   else if (route === 'running' && jobId)
     body = (
       <Running
@@ -168,61 +160,35 @@ export default function App() {
           setFailure(message);
           replace('failed');
         }}
-        onCancelled={() => replace('criteria')}
+        onCancelled={() => replace('screen')}
       />
     );
   else if (route === 'failed')
     body = (
       <div className="flex max-w-md flex-col items-center gap-5">
         <Notice message={failure || 'The run failed. Try again.'} />
-        <button type="button" className="btn" onClick={() => replace('criteria')}>
-          Back to criteria
+        <button type="button" className="btn" onClick={() => replace('screen')}>
+          Back to the screening form
         </button>
       </div>
     );
-  else if (route === 'results' && screening) body = <Results screening={screening} onOpen={(index) => go(`detail/${index}`)} onEdit={() => go('criteria')} />;
+  else if (route === 'results' && screening) body = <Results screening={screening} onOpen={(index) => go(`detail/${index}`)} onEdit={() => go('screen')} />;
   else if (route.startsWith('detail/') && screening?.results[detailIndex])
     body = <CriterionDetail screening={screening} index={detailIndex} onBack={() => go('results')} onMove={(index) => replace(`detail/${index}`)} />;
 
-  const running = route === 'running';
-  const home: DockEntry = { id: 'home', label: 'Home', icon: House, onSelect: requestHome };
-  const entries: DockEntry[] = inResultsArea
-    ? [
-        home,
-        { id: 'results', label: 'Results', icon: ClipboardCheck, onSelect: () => go('results'), active: route === 'results' || route.startsWith('detail/') },
-        { id: 'inspect', label: 'Inspect this result', icon: Search, onSelect: () => go(`inspect/${Math.max(detailIndex, 0)}`), active: onInspect },
-      ]
-    : [
-        home,
-        { id: 'note', label: 'Patient note', icon: FileText, onSelect: () => go('note'), active: route === 'note', disabled: running },
-        { id: 'sentences', label: 'Sentences', icon: ListOrdered, onSelect: () => go('sentences'), active: route === 'sentences', disabled: running || !stepsUnlocked },
-        { id: 'criteria', label: 'Criteria', icon: ListChecks, onSelect: () => go('criteria'), active: route === 'criteria' || running || route === 'failed', disabled: running || !stepsUnlocked },
-        { id: 'inspect', label: 'Inspect', icon: Search, onSelect: () => go('inspect'), active: onInspect, disabled: running },
-      ];
+  const entries: NavEntry[] = [
+    { id: 'screen', label: 'New screening', onSelect: () => (hasWork && screening ? setConfirmNew(true) : go('screen')), active: route === 'screen' || running || route === 'failed' },
+    { id: 'results', label: 'Results', onSelect: () => screening && go('results'), active: route === 'results' || route.startsWith('detail/'), disabled: !screening },
+    { id: 'inspect', label: 'Benchmarks', onSelect: () => go('inspect'), active: onInspect },
+  ];
 
   const inspected = screening?.results[inspectIndex];
 
   return (
     <main ref={mainRef} tabIndex={-1} className="outline-none">
-      {route === '' && (
-        <div className="screen flex min-h-dvh flex-col items-center justify-center px-5 text-center">
-          <p className="display absolute top-7 left-8 m-0 text-xl font-semibold tracking-wide">CRS</p>
-          <LandingOrb />
-          <h1 className="glow-text m-0 mt-8 max-w-2xl text-4xl font-semibold sm:text-5xl">Clinical Trial Criterion Screener</h1>
-          <p className="m-0 mt-4 max-w-xl text-lg text-muted">
-            Match a patient record to each trial criterion, with the exact supporting evidence and an eligibility verdict you can trace.
-          </p>
-          <button type="button" className="btn glass mt-8" onClick={() => go('note')}>
-            Get started
-          </button>
-          <p className="m-0 mt-6 max-w-md text-sm text-faint">
-            Educational screening prototype — not a clinical enrollment decision.
-          </p>
-        </div>
-      )}
-      {onInspect && !restoring && (
-        <div className="screen min-h-dvh">
-          <PageHeader status={status} />
+      <NavBar entries={entries} status={status} onBrand={() => go('screen')} />
+      {onInspect && !restoring ? (
+        <div className="screen">
           <Inspect
             key={inspected ? screening?.reportId : 'flow'}
             status={status}
@@ -234,21 +200,20 @@ export default function App() {
             onOpenReport={openReport}
           />
         </div>
+      ) : (
+        !onInspect && (
+          <div className="screen flex flex-col">
+            <div className={`flex flex-1 justify-center px-5 pt-8 pb-16 ${running ? 'items-center' : 'items-start'}`}>{body}</div>
+          </div>
+        )
       )}
-      {route !== '' && !onInspect && (
-        <div className="screen flex min-h-dvh flex-col">
-          <PageHeader status={status} />
-          <div className={`flex flex-1 justify-center px-5 pt-8 pb-32 ${running ? 'items-center' : 'items-start md:items-center'}`}>{body}</div>
-        </div>
-      )}
-      {route !== '' && <AppDock entries={entries} />}
-      {confirmHome && (
+      {confirmNew && (
         <ConfirmDialog
-          title="Go to the home screen?"
-          message="This clears the note, criteria and results on screen. Saved reports stay in Inspect."
-          confirm="Go home"
-          onConfirm={resetAndGoHome}
-          onCancel={() => setConfirmHome(false)}
+          title="Start a new screening?"
+          message="This clears the current note, criteria and results on screen. Saved reports stay under Benchmarks › Reports."
+          confirm="Start new"
+          onConfirm={resetToNew}
+          onCancel={() => setConfirmNew(false)}
         />
       )}
     </main>

@@ -17,6 +17,161 @@ export type Draft = {
 const MAX_FILE_BYTES = 200_000;
 const lines = (text: string) => text.split('\n').map((line) => line.trim()).filter(Boolean);
 
+/** Single-screen input: patient note, inclusion, exclusion, and run, all in one place. */
+export function ScreenForm({
+  draft,
+  update,
+  status,
+  onRun,
+}: {
+  draft: Draft;
+  update: (patch: Partial<Draft>) => void;
+  status: Status | null;
+  onRun: (sentences: string[]) => Promise<void>;
+}) {
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [trial, setTrial] = useState('');
+  const [message, setMessage] = useState('');
+  const ready = status?.state === 'ready';
+
+  async function loadExample() {
+    try {
+      const example = await api.example();
+      update({ note: example.note, inclusion: example.inclusion.join('\n'), exclusion: example.exclusion.join('\n') });
+      setError('');
+      setMessage('');
+    } catch (failure) {
+      setError((failure as Error).message);
+    }
+  }
+
+  async function onFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (file.size > MAX_FILE_BYTES) {
+      setError('That file is too large. Use a plain text file under 200 KB.');
+      return;
+    }
+    if (!/\.(txt|md)$/i.test(file.name)) {
+      setError('Use a plain text file ending in .txt or .md, or paste the note instead.');
+      return;
+    }
+    update({ note: await file.text() });
+    setError('');
+  }
+
+  async function importTrial() {
+    setError('');
+    setMessage('');
+    setBusy(true);
+    try {
+      const found = await api.trial(trial);
+      update({ inclusion: found.inclusion.join('\n'), exclusion: found.exclusion.join('\n') });
+      setMessage(found.title ? `Loaded: ${found.title}` : `Loaded ${found.id}`);
+    } catch (failure) {
+      setError((failure as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function run() {
+    if (!draft.note.trim()) {
+      setError('Paste a patient note first.');
+      return;
+    }
+    if (!lines(draft.inclusion).length && !lines(draft.exclusion).length) {
+      setError('Enter at least one inclusion or exclusion criterion.');
+      return;
+    }
+    setError('');
+    setBusy(true);
+    try {
+      // Split the note into sentences behind the scenes, so the evidence can cite their IDs.
+      let sentences = draft.sentences;
+      if (!sentences.length || draft.note !== draft.splitNote) {
+        const split = await api.sentences(draft.note);
+        sentences = split.sentences;
+        update({ sentences, splitNote: draft.note });
+      }
+      await onRun(sentences);
+    } catch (failure) {
+      setError((failure as Error).message);
+      setBusy(false);
+    }
+  }
+
+  const statusText = status?.state === 'failed' ? status.error : status?.state === 'loading' || !status ? 'The model is still loading.' : '';
+  return (
+    <div className="flex w-full max-w-5xl flex-col gap-5">
+      <div>
+        <h1 className="glow-text m-0 text-3xl font-semibold">New screening</h1>
+        <p className="m-0 mt-2 text-muted">Paste a patient note and the trial's criteria, then run the screening. Each verdict will cite the exact note sentences.</p>
+      </div>
+
+      <div className="card flex flex-col gap-3 p-5">
+        <div className="flex items-center justify-between gap-3">
+          <label htmlFor="note" className="text-sm font-medium text-muted">Patient note</label>
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <label className="btn cursor-pointer !py-1.5 !px-3">
+              Upload file
+              <input type="file" accept=".txt,.md,text/plain" className="sr-only" onChange={onFile} />
+            </label>
+            <button type="button" className="btn !py-1.5 !px-3" onClick={loadExample}>Use example</button>
+          </div>
+        </div>
+        <textarea
+          id="note"
+          className="field min-h-44 leading-relaxed"
+          value={draft.note}
+          onChange={(event) => update({ note: event.target.value })}
+          placeholder="Paste the clinical note. Sentences are numbered automatically and cited as evidence."
+          aria-label="Patient note"
+        />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="card flex flex-col gap-2 p-5">
+          <label htmlFor="inc" className="text-sm font-medium text-muted">Inclusion criteria <span className="text-faint">(one per line)</span></label>
+          <textarea id="inc" className="field min-h-44" value={draft.inclusion} onChange={(event) => update({ inclusion: event.target.value })} />
+        </div>
+        <div className="card flex flex-col gap-2 p-5">
+          <label htmlFor="exc" className="text-sm font-medium text-muted">Exclusion criteria <span className="text-faint">(one per line)</span></label>
+          <textarea id="exc" className="field min-h-44" value={draft.exclusion} onChange={(event) => update({ exclusion: event.target.value })} />
+        </div>
+      </div>
+
+      <div className="card grid items-end gap-4 p-5 md:grid-cols-[1fr_auto_auto]">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="trial-id" className="text-sm font-medium text-muted">Import criteria from ClinicalTrials.gov</label>
+          <div className="flex gap-2">
+            <input id="trial-id" className="field" placeholder="NCT01234567" value={trial} onChange={(event) => setTrial(event.target.value)} />
+            <button type="button" className="btn shrink-0" onClick={importTrial} disabled={busy || !trial.trim()}>Load</button>
+          </div>
+        </div>
+        <label className="flex flex-col gap-2">
+          <span className="text-sm font-medium text-muted">Decoding</span>
+          <select className="field" value={draft.mode} onChange={(event) => update({ mode: event.target.value })}>
+            {MODES.map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+        </label>
+        <button type="button" className="btn btn-primary !px-6 md:mb-0" onClick={run} disabled={busy || !ready}>
+          {busy ? 'Starting…' : 'Run screening'}
+        </button>
+      </div>
+
+      {draft.mode === 'speculative' && <p className="m-0 text-sm text-faint">Speculative decoding gives the same output as the KV cache. It was slower in our benchmarks on this hardware.</p>}
+      {message && <p className="m-0 text-sm text-accent">{message}</p>}
+      {statusText && <p className="m-0 text-sm text-faint">{statusText}</p>}
+      {error && <Notice message={error} />}
+    </div>
+  );
+}
+
 export function NoteStep({ draft, update, onNext }: { draft: Draft; update: (patch: Partial<Draft>) => void; onNext: () => void }) {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
